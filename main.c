@@ -20,6 +20,73 @@
 #define USAGE "Usage:\n\tmain [rotation angle in degrees] [file path]\n"
 
 
+// Rotates image from a given angle, and writes it to the new image buffer.
+// # Arguments
+// * o_image - pointer to the original image.
+// * height - height of the image.
+// * width - width of the image.
+// * channels - channels of the image.
+// * new_image - pointer to the new allocated image.
+// * rotate_angle - Rotation angle in degrees.
+void rotate_image(unsigned char *o_image, int height, int width, int channels,
+                  unsigned char *new_image, double rotation_angle) {
+  // loop through all the pixels of new image buffer.
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+
+      // convert y, x to co ordinate space.
+      int y_coord = y - height / 2;
+      int x_coord = x - width / 2;
+
+      // rotate y, x using trig functions.
+      int y2 =
+          -sin(rotation_angle) * (x_coord) + cos(rotation_angle) * (y_coord);
+      int x2 =
+          cos(rotation_angle) * (x_coord) + sin(rotation_angle) * (y_coord);
+
+      // convert co ordinate space y, x back to index space.
+      y2 = y2 + height / 2;
+      x2 = x2 + width / 2;
+
+      bool is_this_outside = is_outside(x2, y2, height, width);
+
+      // hard limiting x.
+      if (x2 < 0) {
+        x2 = 0;
+      } else if (x2 >= width) {
+        x2 = width - 1;
+      }
+
+      // hard limiting y.
+      if (y2 < 0) {
+        y2 = 0;
+      } else if (y2 >= height) {
+        y2 = height - 1;
+      }
+
+      LOG("original y, x: %d, %d\n", y, x);
+      LOG("coord    y, x: %d, %d\n", y_coord, x_coord);
+      LOG("rotated  y, x: %d, %d\n\n", y2, x2);
+
+      // map linear position of the current pixel in the original image.
+      unsigned char *color = o_image + (channels * (y2 * height + x2));
+
+      // map linear positon of the current pixel in new image.
+      unsigned char *pixel = new_image + (channels * (y * height + x));
+
+      // looping through the entire pixel and copying
+      // channels from original image to new image.
+      for (int i = 0; i < channels; i++, pixel++, color++) {
+        if (is_this_outside) {
+          *pixel = 0;
+        } else {
+          *pixel = *color;
+        }
+      }
+    }
+  }
+}
+
 // entry point
 int main(int argc, char *argv[]) {
   // if argc is not 3
