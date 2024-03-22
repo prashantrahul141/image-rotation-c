@@ -19,6 +19,9 @@
 
 #define USAGE "Usage:\n\tmain [rotation angle in degrees] [file path]\n"
 
+bool is_outside(int x, int y, int height, int width) {
+  return x < 0 || x > width || y < 0 || y > height;
+}
 
 // Rotates image from a given angle, and writes it to the new image buffer.
 // # Arguments
